@@ -29,9 +29,9 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 REGISTRY="ghcr.io"
-OWNER="${GITHUB_ACTOR:-nanake}"
+OWNER="${GITHUB_ACTOR:-hediokojima}"
 OWNER="${OWNER,,}"
-REPO="${GITHUB_REPOSITORY:-nanake/ffmpeg-tinderbox}"
+REPO="${GITHUB_REPOSITORY:-hediokojima/ffmpeg-tinderbox}"
 REPO="${REPO,,}"
 TARGET_IMAGE="${REGISTRY}/${OWNER}/base-${TARGET}:latest"
 IMAGE="${REGISTRY}/${OWNER}/${TARGET}-${VARIANT%-shared}:latest"

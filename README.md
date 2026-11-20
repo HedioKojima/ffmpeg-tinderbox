@@ -1,6 +1,6 @@
 # FFmpeg Build Environment
 
-This repository provides a Docker-based build environment for compiling recent git versions of FFmpeg, including optional GPL and non-free libraries such as `libfdk-aac`, `libfdk-xhe-aac`, `libmpeghdec`, `LCEVCdec`, and `DeckLink`.
+This repository provides a Docker-based build environment for compiling recent git versions of FFmpeg for 64-bit Windows. It is a trimmed fork of [nanake/ffmpeg-tinderbox](https://github.com/nanake/ffmpeg-tinderbox): the dependency set is reduced to the components listed under [Enabled Libraries](#enabled-libraries), including NVIDIA codec headers, JPEG XL, Opus, WebP, SVT-AV1 and vid.stab.
 
 The project automates dependency compilation and FFmpeg builds for supported targets.
 
@@ -21,11 +21,12 @@ Make sure the following tools are installed:
 
 ### Variants
 
+Static builds only; the `-shared` variants from upstream are not part of this fork.
+
 | Variant | Description |
 |----------|-------------|
-| `lgpl` | Builds FFmpeg with LGPL-compatible libraries only |
-| `gpl` | Includes all LGPL libraries plus GPL components |
-| `nonfree` | Includes GPL libraries and non-free components such as libfdk-aac, libfdk-xhe-aac, LCEVCdec,  libmpeghdec, and DeckLink |
+| `gpl` | LGPL/GPL build without non-free components |
+| `nonfree` | Adds non-free `libfdk-aac` (AAC and xHE-AAC); the variant built by CI |
 
 ### Add-ins
 
@@ -44,6 +45,10 @@ docker build \
     -t base-win64:latest \
     images/base-win64
 ```
+
+This fork does not compile the Fedora + UCRT64 mingw toolchain itself; `images/base-win64/Dockerfile` reuses `ghcr.io/nanake/base-win64:latest` and re-tags it under your own namespace. Restore the original Dockerfile from upstream if you need to change the toolchain packages, mingw version or `FFBUILD_*` environment.
+
+When using GitHub Actions, run the **Base image** workflow once before the first **Windows Cross Compiled** run so that `ghcr.io/<owner>/base-win64:latest` exists.
 
 ### Generate the Target Dockerfile
 
@@ -75,99 +80,48 @@ Build FFmpeg using a target and variant:
 ./build.sh <target> <variant> <add-in>
 ```
 
-### Shared Build
-To build FFMpeg shared libraries instead of static ones, append -shared to the variant:
-
-```bash
-./build.sh <target> <variant>-shared <add-in>
-```
-
 ### Output
-After a successful build, the generated binaries and packages can be found in `artifact` folder
+After a successful build, the generated binaries and packages can be found in `artifacts` folder
 
 ## Enabled Libraries
 
-The build environment currently supports the following libraries and features:
+The build environment currently enables the following libraries and features:
 
-
-- iconv
-- libxml2
-- zlib
-- libfreetype
-- libfribidi
-- gmp
-- lzma
-- libharfbuzz
-- libfontconfig
-- libvorbis
-- opencl
-- libvmaf
-- amf
-- avisynth
-- chromaprint
 - cuda-llvm
-- decklink
 - ffnvcodec
+- iconv
 - lcms2
-- libaribcaption
 - libass
-- libbluray
 - libcurl
 - libdav1d
-- libdavs2
-- libdvdnav
-- libdvdread
 - libfdk-aac
 - libfdk-xhe-aac
-- libgme
+- libfontconfig
+- libfreetype
+- libfribidi
+- libharfbuzz
 - libjxl
-- libkvazaar
-- liblc3
-- liblcevc-dec
-- libmp3lame
-- libmpeghdec
-- libmysofa
-- liboapv
-- libopencore-amrnb
-- libopencore-amrwb
-- libopenh264
-- libopenjpeg
-- libopenmpt
 - libopus
 - libplacebo
-- librav1e
-- librist
-- librubberband
-- libshaderc
-- libsnappy
-- libsoxr
 - libsrt
 - libssh
 - libsvtav1
-- libsvtjpegxs
-- libtheora
-- libtwolame
-- libuavs3d
 - libvidstab
-- libvpl
-- libvpx
-- libvvenc
 - libwebp
-- libx264
-- libx265
-- libxavs2
-- libxevd
-- libxeve
+- libxml2
 - libzimg
-- libzmq
-- libzvbi
-- openal
+- lzma
+- opencl
 - openssl
-- sdl2
-- vaapi
-- vapoursynth
+- pthreads
 - vulkan
-- whisper
+- zlib
+
+`brotli`, `lcms2`, `xxhash`, `zstd` and `shaderc` are also built as dependencies of the libraries above.
+
+### Intentionally Not Built
+
+The following upstream components are removed in this fork: libx264, libx265, libvpx, rav1e, AMF/VPL/VA-API, DeckLink, DVD/Blu-ray, AviSynth/VapourSynth, SDL2 (therefore `ffplay` is not built), whisper and the remaining optional codecs from the upstream list. Restore the corresponding `scripts.d/*.sh` and variant files from upstream if any of them are needed.
 
 ##  Acknowledgments
 
